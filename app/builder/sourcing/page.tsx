@@ -218,6 +218,76 @@ const SOURCING_DATA: Record<string, {
   },
 };
 
+const SPECIAL_SOURCING_ROUTES = [
+  {
+    icon: "✈️",
+    title: "해외 직수입 (생산지 직거래)",
+    badge: "가장 저렴",
+    desc: "생산국 농장·제조사와 직접 계약해 수입. 단가 최저지만 MOQ(최소 주문량)와 통관 절차가 필요합니다.",
+    steps: [
+      "해외 생산자 발굴: Alibaba / Global Sources / 해당 국가 무역관",
+      "샘플 주문 → 품질 확인 (국내 성분 분석 기관 의뢰 권장)",
+      "수입신고: 관세사 선임 (비용 약 15~30만원/건)",
+      "식품의 경우 수입식품안전관리 특별법 기준 서류 준비",
+      "식약처 수입식품 신고 → 통관 후 판매",
+    ],
+    links: [
+      { label: "Alibaba 글로벌 B2B", url: "https://www.alibaba.com" },
+      { label: "KOTRA 해외시장 정보", url: "https://www.kotra.or.kr" },
+      { label: "식약처 수입식품 신고", url: "https://www.foodsafetykorea.go.kr" },
+    ],
+    warning: "식품 직수입 시 '수입식품안전관리 특별법'에 따라 수입업 신고 또는 등록이 필요할 수 있습니다.",
+  },
+  {
+    icon: "🏢",
+    title: "국내 수입 무역상사 활용",
+    badge: "가장 간편",
+    desc: "이미 국내 통관을 완료한 수입 무역상사에서 구매. 수량이 적어도 가능하며 서류 부담이 없습니다.",
+    steps: [
+      "한국무역협회(KITA) 또는 네이버 B2B 무역에서 전문 수입상 검색",
+      "관심 품목의 식품 수입업체 목록 요청",
+      "단가·MOQ 협상 후 거래명세서·성적서(COA) 수령",
+      "별도 수입신고 없이 국내 거래로 처리 가능",
+    ],
+    links: [
+      { label: "한국무역협회(KITA)", url: "https://www.kita.net" },
+      { label: "트레이드코리아", url: "https://www.tradekorea.com" },
+    ],
+  },
+  {
+    icon: "🗺️",
+    title: "국내 특산물·소규모 수입상 발굴",
+    badge: "희귀 원재료",
+    desc: "오페퍼(희귀 후추), 마켓컬리 B2B, 농협 특산물 등 소규모 특수 원재료 전문 공급처를 활용합니다.",
+    steps: [
+      "네이버 스마트스토어 / 인스타그램에서 '#수입후추 #희귀향신료' 등 검색 → 소규모 수입상 발굴",
+      "스페셜티 식재료 전문 플랫폼(마켓컬리 B2B, 쿠팡 비즈) 문의",
+      "거래 시 공급업체 사업자등록증·원산지증명서 반드시 수령",
+      "소량 매입 후 반응 확인 → 수요 입증 후 직수입 전환 고려",
+    ],
+    links: [
+      { label: "마켓컬리 B2B", url: "https://biz.kurly.com" },
+      { label: "쿠팡 비즈니스", url: "https://biz.coupang.com" },
+    ],
+  },
+  {
+    icon: "📋",
+    title: "수입 시 필수 행정 체크",
+    desc: "식품·향신료 등을 수입하거나 수입 원재료를 사용해 제품을 만들 때 반드시 확인해야 할 항목입니다.",
+    steps: [
+      "원산지 표시 의무: '원산지: ○○국' 라벨 부착 (대외무역법)",
+      "수입 식품 성분 분석표(COA) 보관 — 식약처 점검 시 제출",
+      "관세율 확인: 관세법령정보포털(CusNet)에서 HS코드 검색",
+      "수입 통관 후 국내 기준 초과 성분 여부 재확인 필수",
+    ],
+    links: [
+      { label: "관세법령정보포털", url: "https://www.customs.go.kr" },
+      { label: "HS코드 조회", url: "https://unipass.customs.go.kr" },
+    ],
+    warning: "수입 원재료라도 국내 식품위생법·화장품법 기준을 충족해야 합니다. 해외 인증이 국내 기준과 다를 수 있습니다.",
+  },
+];
+
 const DEFAULT_SOURCING = {
   suppliers: [{ name: "도매꾹", url: "https://www.domeggook.com", desc: "국내 최대 도매 플랫폼", grade: "일반" }],
   fixedCost: 200000,
@@ -226,6 +296,17 @@ const DEFAULT_SOURCING = {
   variableDesc: "단위당 원재료비",
 };
 
+// 수입/희귀/특수 원재료 키워드
+const IMPORT_KEYWORDS = [
+  "수입", "희귀", "특수", "이국", "해외", "외국", "원산지", "직수입", "후추", "향신료", "스파이스",
+  "트러플", "사프란", "바닐라", "마카", "아사이", "슈퍼푸드", "유기농 수입", "원두 수입", "허브 수입",
+];
+
+function detectSpecialSourcing(rawText: string): boolean {
+  const text = rawText.toLowerCase();
+  return IMPORT_KEYWORDS.some(k => text.includes(k));
+}
+
 function SourcingPageInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -233,6 +314,7 @@ function SourcingPageInner() {
   const [triage, setTriage] = useState<TriageResult | null>(null);
   const [quantity, setQuantity] = useState(100);
   const [margin, setMargin] = useState(40);
+  const [rawText, setRawText] = useState("");
 
   useEffect(() => {
     if (!sessionId) { router.push("/"); return; }
@@ -241,6 +323,7 @@ function SourcingPageInner() {
     const session = JSON.parse(stored);
     if (!session.paid) { router.push(`/builder/paywall?session=${sessionId}`); return; }
     setTriage(session.triage);
+    setRawText(session.rawText ?? "");
     if (session.detectedQuantity) setQuantity(session.detectedQuantity);
   }, [sessionId, router]);
 
@@ -248,6 +331,7 @@ function SourcingPageInner() {
 
   const cat = triage.matchedCategory;
   const sourcing = SOURCING_DATA[cat.categoryId] || DEFAULT_SOURCING;
+  const isSpecial = detectSpecialSourcing(rawText);
 
   const totalVariable = sourcing.variableCostPerUnit * quantity;
   const totalCost = sourcing.fixedCost + totalVariable;
@@ -359,6 +443,62 @@ function SourcingPageInner() {
             ))}
           </div>
         </div>
+
+        {/* 특수·수입 원재료 소싱 가이드 */}
+        {isSpecial && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold">🌏 특수·수입 원재료 소싱 경로</h2>
+              <span className="text-xs bg-purple-900 text-purple-300 px-2 py-0.5 rounded">수입 감지</span>
+            </div>
+            <div className="bg-purple-950 border border-purple-800 rounded-xl p-5 space-y-2">
+              <p className="text-sm text-purple-200 font-medium">아이디어에서 희귀·수입 원재료가 감지되었습니다.</p>
+              <p className="text-xs text-purple-300">국내 일반 B2B 공급처 외에 아래 경로를 통해 특수 원재료를 합법적으로 조달할 수 있습니다.</p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3">
+              {SPECIAL_SOURCING_ROUTES.map((route) => (
+                <div key={route.title} className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl flex-shrink-0">{route.icon}</span>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="font-semibold text-sm">{route.title}</p>
+                        {route.badge && <span className="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded">{route.badge}</span>}
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1">{route.desc}</p>
+                    </div>
+                  </div>
+                  {route.steps && (
+                    <ol className="space-y-1 pl-2">
+                      {route.steps.map((step, i) => (
+                        <li key={i} className="text-xs text-gray-300 flex gap-2">
+                          <span className="text-orange-500 font-mono flex-shrink-0">{i + 1}.</span>
+                          <span>{step}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  )}
+                  {route.links && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {route.links.map(link => (
+                        <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer"
+                          className="text-xs text-orange-400 hover:text-orange-300 underline">
+                          {link.label} →
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                  {route.warning && (
+                    <p className="text-xs text-yellow-400 bg-yellow-950 border border-yellow-800 rounded px-3 py-2">
+                      ⚠️ {route.warning}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <button onClick={goNext} className="w-full bg-orange-500 hover:bg-orange-400 text-white font-semibold py-4 rounded-xl transition text-lg">
           STEP 4: 안전 검증 & 라벨 작성 →

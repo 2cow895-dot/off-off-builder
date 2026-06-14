@@ -4,10 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const EXAMPLE_IDEAS = [
+  "희귀 후추를 수입해서 소분 판매하고 싶어요",
   "허브가 들어간 식용 버터 캔들 100개 만들어 팔고 싶어요",
   "수제 앞치마를 만들어서 카페에 납품하고 싶어요",
   "천연 재료로 만든 핸드크림을 판매하고 싶어요",
-  "강아지 수제 간식을 만들어 온라인에서 팔고 싶어요",
   "도예 원데이클래스 공방을 열고 싶어요",
 ];
 
@@ -76,23 +76,61 @@ export default function HomePage() {
         <span className="text-sm text-gray-500 hidden sm:block">창업을 쉽고 탄탄하게</span>
       </header>
 
-      {/* ① 히어로 — 목표 선언 */}
-      <section className="px-6 py-20 text-center border-b border-gray-800/50">
-        <div className="max-w-2xl mx-auto space-y-4">
-          <p className="text-sm text-orange-400 font-medium tracking-widest uppercase">오프라인 창업 AI 로드맵</p>
-          <h1 className="text-4xl sm:text-5xl font-bold leading-tight">
-            창업을 <span className="text-orange-400">쉽고 탄탄하게</span><br />
-            시작하는 방법
-          </h1>
-          <p className="text-gray-400 text-lg leading-relaxed">
-            아이디어는 있는데 법규·서류·소싱이 막막한 예비 창업자를 위해<br className="hidden sm:block" />
-            오프오프 빌더가 처음부터 끝까지 함께합니다.
-          </p>
+      {/* ① 히어로 + 입력창 통합 */}
+      <section className="px-6 py-16 sm:py-24 border-b border-gray-800/50">
+        <div className="max-w-2xl mx-auto space-y-8">
+          {/* 타이틀 */}
+          <div className="text-center space-y-4">
+            <p className="text-sm text-orange-400 font-medium tracking-widest uppercase">오프라인 창업 AI 로드맵</p>
+            <h1 className="text-4xl sm:text-5xl font-bold leading-tight">
+              창업을 <span className="text-orange-400">쉽고 탄탄하게</span><br />
+              시작하는 방법
+            </h1>
+            <p className="text-gray-400 text-base sm:text-lg leading-relaxed">
+              아이디어만 입력하면 법규 · 인허가 · 소싱 · 라벨 · 물류까지<br className="hidden sm:block" />
+              오프오프 빌더가 처음부터 끝까지 로드맵을 만들어 드립니다.
+            </p>
+          </div>
+
+          {/* 입력 폼 */}
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <textarea
+              value={idea}
+              onChange={(e) => setIdea(e.target.value)}
+              placeholder={"예) 희귀 후추를 수입해서 소분 판매하고 싶어요\n예) 허브가 든 식용 버터 캔들 100개를 만들어 팔고 싶어요"}
+              rows={3}
+              className="w-full bg-gray-900 border border-gray-700 rounded-xl px-5 py-4 text-white placeholder-gray-500 resize-none focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition text-base"
+            />
+            {error && <p className="text-red-400 text-sm">{error}</p>}
+            <button
+              type="submit"
+              disabled={loading || !idea.trim()}
+              className="w-full bg-orange-500 hover:bg-orange-400 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold py-4 rounded-xl transition text-lg"
+            >
+              {loading ? "분석 중..." : "창업 로드맵 생성하기 →"}
+            </button>
+          </form>
+
+          {/* 예시 칩 */}
+          <div className="space-y-2">
+            <p className="text-xs text-gray-500 text-center">예시로 시작해보기</p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {EXAMPLE_IDEAS.map((ex) => (
+                <button
+                  key={ex}
+                  onClick={() => setIdea(ex)}
+                  className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-full transition"
+                >
+                  {ex}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
       {/* ② 페인포인트 */}
-      <section className="px-6 py-16 border-b border-gray-800/50">
+      <section className="px-6 py-14 border-b border-gray-800/50">
         <div className="max-w-3xl mx-auto space-y-8">
           <div className="text-center space-y-2">
             <p className="text-xs text-gray-500 uppercase tracking-widest">이런 고민 해보셨나요?</p>
@@ -113,7 +151,7 @@ export default function HomePage() {
       </section>
 
       {/* ③ 해결책 */}
-      <section className="px-6 py-16 border-b border-gray-800/50">
+      <section className="px-6 py-14 border-b border-gray-800/50">
         <div className="max-w-3xl mx-auto space-y-8">
           <div className="text-center space-y-2">
             <p className="text-xs text-orange-400 uppercase tracking-widest">오프오프 빌더의 답</p>
@@ -132,50 +170,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ④ 입력창 — CTA */}
-      <section className="px-6 py-20">
-        <div className="max-w-2xl mx-auto space-y-6">
-          <div className="text-center space-y-2">
-            <h2 className="text-2xl font-bold">지금 바로 시작해보세요</h2>
-            <p className="text-gray-400 text-sm">만들고 싶은 제품이나 사업을 자유롭게 입력하면 됩니다.</p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <textarea
-              value={idea}
-              onChange={(e) => setIdea(e.target.value)}
-              placeholder={"예) 허브가 들어간 식용 버터 캔들 100개를 만들어 팔고 싶어요\n예) 카페에 납품할 수제 앞치마를 제작하고 싶어요"}
-              rows={4}
-              className="w-full bg-gray-900 border border-gray-700 rounded-xl px-5 py-4 text-white placeholder-gray-500 resize-none focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition text-base"
-            />
-            {error && <p className="text-red-400 text-sm">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading || !idea.trim()}
-              className="w-full bg-orange-500 hover:bg-orange-400 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold py-4 rounded-xl transition text-lg"
-            >
-              {loading ? "분석 중..." : "창업 로드맵 생성하기 →"}
-            </button>
-          </form>
-
-          <div className="space-y-2">
-            <p className="text-xs text-gray-500">예시로 시작해보기</p>
-            <div className="flex flex-wrap gap-2">
-              {EXAMPLE_IDEAS.map((ex) => (
-                <button
-                  key={ex}
-                  onClick={() => setIdea(ex)}
-                  className="text-xs bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-full transition"
-                >
-                  {ex}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ⑤ 5단계 프로세스 */}
+      {/* ④ 5단계 프로세스 */}
       <section className="border-t border-gray-800 px-6 py-10 bg-gray-900/30">
         <div className="max-w-4xl mx-auto">
           <p className="text-xs text-gray-500 text-center mb-6 uppercase tracking-widest">5단계 자동 분석 프로세스</p>
