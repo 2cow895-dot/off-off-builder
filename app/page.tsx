@@ -4,11 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const EXAMPLE_IDEAS = [
-  "희귀 후추를 수입해서 소분 판매하고 싶어요",
   "허브가 들어간 식용 버터 캔들 100개 만들어 팔고 싶어요",
   "수제 앞치마를 만들어서 카페에 납품하고 싶어요",
   "천연 재료로 만든 핸드크림을 판매하고 싶어요",
   "도예 원데이클래스 공방을 열고 싶어요",
+  "강아지 수제 간식을 만들어 온라인에서 팔고 싶어요",
 ];
 
 const PAIN_POINTS = [
