@@ -109,7 +109,14 @@ function QCPageInner() {
   return (
     <main className="min-h-screen bg-gray-950 text-white">
       <header className="border-b border-gray-800 px-6 py-4 flex items-center justify-between">
-        <span className="text-xl font-bold">오프오프 빌더</span>
+        <div className="flex items-center gap-3">
+          <button onClick={() => router.push(`/builder/sourcing?session=${sessionId}`)}
+            className="text-gray-400 hover:text-white text-sm flex items-center gap-1 transition">
+            ← 뒤로
+          </button>
+          <span className="text-gray-700">|</span>
+          <span className="text-xl font-bold">오프오프 빌더</span>
+        </div>
         <div className="flex gap-2 text-xs text-gray-500">
           {["법적 타당성", "인허가·서류", "소싱·예산", "안전·라벨", "물류·채널"].map((s, i) => (
             <span key={s} className={`px-2 py-1 rounded ${i === 3 ? "bg-orange-500 text-white" : "bg-gray-800"}`}>{i + 1}. {s}</span>
