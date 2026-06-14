@@ -315,6 +315,7 @@ function SourcingPageInner() {
   const [quantity, setQuantity] = useState(100);
   const [margin, setMargin] = useState(40);
   const [rawText, setRawText] = useState("");
+  const [businessMethod, setBusinessMethodState] = useState<string>("");
 
   useEffect(() => {
     if (!sessionId) { router.push("/"); return; }
@@ -324,6 +325,7 @@ function SourcingPageInner() {
     if (!session.paid) { router.push(`/builder/paywall?session=${sessionId}`); return; }
     setTriage(session.triage);
     setRawText(session.rawText ?? "");
+    setBusinessMethodState(session.businessInfo?.businessMethod ?? "self_manufacture");
     if (session.detectedQuantity) setQuantity(session.detectedQuantity);
   }, [sessionId, router]);
 
@@ -331,7 +333,9 @@ function SourcingPageInner() {
 
   const cat = triage.matchedCategory;
   const sourcing = SOURCING_DATA[cat.categoryId] || DEFAULT_SOURCING;
-  const isSpecial = detectSpecialSourcing(rawText);
+  const isSpecial = detectSpecialSourcing(rawText) || businessMethod === "import_resell";
+  const isOEM = businessMethod === "oem";
+  const isPopup = businessMethod === "popup";
 
   const totalVariable = sourcing.variableCostPerUnit * quantity;
   const totalCost = sourcing.fixedCost + totalVariable;
@@ -494,6 +498,102 @@ function SourcingPageInner() {
                       ⚠️ {route.warning}
                     </p>
                   )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* OEM 공장 소싱 가이드 */}
+        {isOEM && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold">🏭 OEM 제조사 발굴 가이드</h2>
+              <span className="text-xs bg-purple-900 text-purple-300 px-2 py-0.5 rounded">OEM 방식</span>
+            </div>
+            <div className="grid grid-cols-1 gap-3">
+              {[
+                {
+                  icon: "🔍", title: "OEM 공장 찾기",
+                  steps: ["공장나라(factorykorea.com) — 국내 제조사 DB 검색", "네이버 B2B 마켓에서 품목명 + 'OEM' 검색", "한국제조업협회 회원사 목록 활용", "Alibaba — 해외 OEM 공장 (MOQ 낮음)"],
+                  links: [{ label: "공장나라", url: "https://www.factorykorea.com" }, { label: "Alibaba OEM", url: "https://www.alibaba.com" }],
+                },
+                {
+                  icon: "📋", title: "OEM 계약 시 체크리스트",
+                  steps: ["제품 사양서(스펙시트) 먼저 작성 후 공장 제출", "샘플 3회 이상 수령 → 품질 확정", "제조물책임(PL) 책임 주체 계약서에 명시", "로트(Lot)번호 관리 및 이력 추적 가능 공장 선택", "납기·불량률·재작업 조건 계약서 포함"],
+                },
+                {
+                  icon: "🏷️", title: "자체 브랜드 라벨링",
+                  steps: ["상표 출원 먼저 (특허청 키프리스)", "OEM 공장에 브랜드 라벨 인쇄 요청 또는 별도 라벨 부착", "해당 법령 의무 표기사항 반드시 포함"],
+                  links: [{ label: "키프리스 상표 출원", url: "https://www.kipris.or.kr" }],
+                },
+              ].map(route => (
+                <div key={route.title} className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{route.icon}</span>
+                    <p className="font-semibold text-sm">{route.title}</p>
+                  </div>
+                  <ol className="space-y-1 pl-2">
+                    {route.steps.map((step, i) => (
+                      <li key={i} className="text-xs text-gray-300 flex gap-2">
+                        <span className="text-purple-400 font-mono flex-shrink-0">{i + 1}.</span>
+                        <span>{step}</span>
+                      </li>
+                    ))}
+                  </ol>
+                  {"links" in route && route.links && (
+                    <div className="flex flex-wrap gap-2">
+                      {route.links.map(link => (
+                        <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer"
+                          className="text-xs text-orange-400 hover:text-orange-300 underline">{link.label} →</a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 팝업 소싱 가이드 */}
+        {isPopup && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold">🎪 팝업 장소 & 소싱 가이드</h2>
+              <span className="text-xs bg-yellow-900 text-yellow-300 px-2 py-0.5 rounded">팝업 방식</span>
+            </div>
+            <div className="grid grid-cols-1 gap-3">
+              {[
+                {
+                  icon: "📍", title: "팝업 장소 찾기",
+                  steps: ["스페이스클라우드 — 단기 공간 임대", "팝플리·위팝 — 팝업 전문 플랫폼", "백화점·쇼핑몰 MD 팀 직접 제안서 발송", "마켓 플리마켓(서울숲, 망원 등) 입점 신청"],
+                  links: [{ label: "스페이스클라우드", url: "https://www.spacecloud.kr" }, { label: "팝플리", url: "https://www.popply.co.kr" }],
+                },
+                {
+                  icon: "📦", title: "소량 소싱 전략",
+                  steps: ["팝업은 소량이므로 도매꾹·오너클랜에서 소량 구매 가능", "테스트 판매 후 반응 확인 → 직수입 또는 OEM 전환", "재고 리스크 최소화: 선주문 방식 고려"],
+                  links: [{ label: "도매꾹", url: "https://www.domeggook.com" }, { label: "오너클랜", url: "https://www.ownerclan.com" }],
+                },
+              ].map(route => (
+                <div key={route.title} className="bg-gray-900 border border-gray-800 rounded-xl p-5 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{route.icon}</span>
+                    <p className="font-semibold text-sm">{route.title}</p>
+                  </div>
+                  <ol className="space-y-1 pl-2">
+                    {route.steps.map((step, i) => (
+                      <li key={i} className="text-xs text-gray-300 flex gap-2">
+                        <span className="text-yellow-400 font-mono flex-shrink-0">{i + 1}.</span>
+                        <span>{step}</span>
+                      </li>
+                    ))}
+                  </ol>
+                  <div className="flex flex-wrap gap-2">
+                    {route.links.map(link => (
+                      <a key={link.label} href={link.url} target="_blank" rel="noopener noreferrer"
+                        className="text-xs text-orange-400 hover:text-orange-300 underline">{link.label} →</a>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>

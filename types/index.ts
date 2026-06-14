@@ -80,16 +80,18 @@ export interface TriageResult {
 
 export type BusinessType = "sole" | "corporation" | "undecided";
 export type SalesChannel = "offline_only" | "online_only" | "both" | "undecided";
+export type BusinessMethod = "self_manufacture" | "import_resell" | "oem" | "popup";
 
 export interface BusinessInfo {
-  hasBusinessName: boolean;          // 상호명 여부
-  businessName?: string;             // 상호명 (있을 때만)
-  needsTrademark?: boolean;          // 상표 등록 희망 여부
-  businessType: BusinessType;        // 개인사업자 / 법인 / 미정
-  region: string;                    // 사업 예정 지역 (시·도)
-  salesChannel: SalesChannel;        // 판매 방식
-  hasPhysicalStore: boolean;         // 오프라인 매장 여부
-  quantity?: number;                 // 목표 생산/판매 수량
+  hasBusinessName: boolean;
+  businessName?: string;
+  needsTrademark?: boolean;
+  businessType: BusinessType;
+  region: string;
+  salesChannel: SalesChannel;
+  hasPhysicalStore: boolean;
+  quantity?: number;
+  businessMethod: BusinessMethod;    // 사업 방식 (직접제조 / 수입판매 / OEM / 팝업)
 }
 
 // ─── 세션 (localStorage 저장) ────────────────────────────────────

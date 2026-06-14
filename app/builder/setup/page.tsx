@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
-import type { BusinessInfo, BusinessType, SalesChannel } from "@/types";
+import type { BusinessInfo, BusinessType, SalesChannel, BusinessMethod } from "@/types";
 
 const REGIONS = [
   "서울", "경기", "인천", "부산", "대구", "광주", "대전", "울산", "세종",
@@ -23,6 +23,7 @@ function SetupPageInner() {
   const [salesChannel, setSalesChannel] = useState<SalesChannel>("undecided");
   const [hasPhysicalStore, setHasPhysicalStore] = useState<boolean | null>(null);
   const [quantity, setQuantity] = useState(100);
+  const [businessMethod, setBusinessMethod] = useState<BusinessMethod | null>(null);
   const [rawText, setRawText] = useState("");
 
   useEffect(() => {
@@ -33,6 +34,7 @@ function SetupPageInner() {
   }, [sessionId, router]);
 
   const canProceed =
+    businessMethod !== null &&
     hasBusinessName !== null &&
     (hasBusinessName === false || businessName.trim().length > 0) &&
     region !== "" &&
@@ -53,6 +55,7 @@ function SetupPageInner() {
       salesChannel,
       hasPhysicalStore: hasPhysicalStore!,
       quantity,
+      businessMethod: businessMethod!,
     };
 
     session.businessInfo = info;
@@ -85,6 +88,64 @@ function SetupPageInner() {
           <h1 className="text-2xl font-bold">사업 기본 정보</h1>
           <p className="text-gray-400 text-sm">입력하신 정보는 인허가 서류 자동 완성에 사용됩니다.</p>
         </div>
+
+        {/* 사업 방식 — 가장 중요한 분기점 */}
+        <Section title="어떤 방식으로 사업하실 건가요?" required>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <ChoiceCard
+              label="직접 제조 · 판매"
+              desc="내가 직접 만들어서 판다 (캔들, 수제식품, 의류 등)"
+              selected={businessMethod === "self_manufacture"}
+              onClick={() => setBusinessMethod("self_manufacture")}
+              badge="가장 일반적"
+            />
+            <ChoiceCard
+              label="수입 후 판매"
+              desc="해외 제품·식재료를 들여와서 판다 (완제품 수입 / 식재료 수입)"
+              selected={businessMethod === "import_resell"}
+              onClick={() => setBusinessMethod("import_resell")}
+              badge="수입업 신고 필요"
+            />
+            <ChoiceCard
+              label="OEM 위탁 제조"
+              desc="공장에 맡겨 내 브랜드로 만든다 (자체 브랜드 런칭)"
+              selected={businessMethod === "oem"}
+              onClick={() => setBusinessMethod("oem")}
+              badge="브랜드 창업"
+            />
+            <ChoiceCard
+              label="팝업 · 단기 운영"
+              desc="마켓, 팝업스토어 등 단기로 운영한다"
+              selected={businessMethod === "popup"}
+              onClick={() => setBusinessMethod("popup")}
+              badge="임시영업 가능"
+            />
+          </div>
+          {businessMethod === "import_resell" && (
+            <div className="mt-3 bg-blue-950 border border-blue-800 rounded-lg px-4 py-3 text-xs text-blue-300 space-y-1">
+              <p className="font-semibold">수입 판매 시 주요 체크포인트</p>
+              <p>· 식품: 수입식품안전관리 특별법 — 수입신고 필수</p>
+              <p>· 완제품: 병행수입 또는 정식 수입업자 등록</p>
+              <p>· 소분 재판매: 소분판매업 신고 추가 필요</p>
+            </div>
+          )}
+          {businessMethod === "oem" && (
+            <div className="mt-3 bg-purple-950 border border-purple-800 rounded-lg px-4 py-3 text-xs text-purple-300 space-y-1">
+              <p className="font-semibold">OEM 창업 시 주요 체크포인트</p>
+              <p>· 제조물책임법(PL법) — 브랜드사(본인)가 책임 주체</p>
+              <p>· 제조사와 OEM 계약서 체결 필수</p>
+              <p>· 상표 출원 선행 권장</p>
+            </div>
+          )}
+          {businessMethod === "popup" && (
+            <div className="mt-3 bg-yellow-950 border border-yellow-800 rounded-lg px-4 py-3 text-xs text-yellow-300 space-y-1">
+              <p className="font-semibold">팝업 운영 시 주요 체크포인트</p>
+              <p>· 5일 이하: 임시영업신고 (식품위생법 제37조)</p>
+              <p>· 5일 초과: 일반 영업신고 필요</p>
+              <p>· 장소: 팝업 플랫폼 또는 쇼핑몰 MD 협의</p>
+            </div>
+          )}
+        </Section>
 
         {/* 상호명 여부 */}
         <Section title="상호명이 있으신가요?" required>
@@ -248,8 +309,8 @@ function Section({ title, required, children }: { title: string; required?: bool
   );
 }
 
-function ChoiceCard({ label, desc, selected, onClick, small }: {
-  label: string; desc?: string; selected: boolean; onClick: () => void; small?: boolean;
+function ChoiceCard({ label, desc, selected, onClick, small, badge }: {
+  label: string; desc?: string; selected: boolean; onClick: () => void; small?: boolean; badge?: string;
 }) {
   return (
     <button
@@ -260,7 +321,10 @@ function ChoiceCard({ label, desc, selected, onClick, small }: {
           : "border-gray-700 bg-gray-900 text-gray-300 hover:border-gray-500"
       }`}
     >
-      <p className={`font-medium ${small ? "text-xs" : "text-sm"}`}>{label}</p>
+      <div className="flex items-center gap-2 flex-wrap">
+        <p className={`font-medium ${small ? "text-xs" : "text-sm"}`}>{label}</p>
+        {badge && <span className="text-xs bg-gray-700 text-gray-400 px-2 py-0.5 rounded">{badge}</span>}
+      </div>
       {desc && <p className="text-xs text-gray-500 mt-0.5">{desc}</p>}
     </button>
   );

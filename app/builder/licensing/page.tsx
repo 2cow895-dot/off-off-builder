@@ -3,7 +3,105 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Suspense } from "react";
-import type { TriageResult, LicenseItem, BusinessInfo } from "@/types";
+import type { TriageResult, LicenseItem, BusinessInfo, BusinessMethod } from "@/types";
+
+// 사업 방식별 추가 인허가
+function getMethodLicenses(method: BusinessMethod): LicenseItem[] {
+  if (method === "import_resell") {
+    return [
+      {
+        licenseId: "METHOD-IMP-001",
+        licenseName: "수입식품 등 수입판매업 신고",
+        issuingAuthority: "식품의약품안전처 (수입식품정보마루)",
+        isMandatory: true,
+        estimatedDays: 7,
+        onlineApplicationUrl: "https://impfood.mfds.go.kr",
+        requiredDocuments: ["수입판매업 신고서", "사업장 평면도", "사업자등록증"],
+      },
+      {
+        licenseId: "METHOD-IMP-002",
+        licenseName: "수입식품 사전신고 (건별)",
+        issuingAuthority: "식품의약품안전처",
+        isMandatory: true,
+        estimatedDays: 3,
+        onlineApplicationUrl: "https://impfood.mfds.go.kr",
+        requiredDocuments: ["수입신고서", "위생증명서 (원산지 발행)", "성분분석서(COA)", "포장·라벨 사진"],
+      },
+      {
+        licenseId: "METHOD-IMP-003",
+        licenseName: "관세 신고 (관세사 선임)",
+        issuingAuthority: "관세청",
+        isMandatory: true,
+        estimatedDays: 2,
+        onlineApplicationUrl: "https://unipass.customs.go.kr",
+        requiredDocuments: ["인보이스", "패킹리스트", "B/L 또는 AWB", "원산지증명서"],
+      },
+      {
+        licenseId: "METHOD-IMP-004",
+        licenseName: "소분판매업 신고 (재포장 시)",
+        issuingAuthority: "관할 구청",
+        isMandatory: false,
+        estimatedDays: 7,
+        onlineApplicationUrl: "https://www.gov.kr",
+        requiredDocuments: ["소분판매업 신고서", "시설 평면도", "식품위생교육 이수증"],
+      },
+    ];
+  }
+  if (method === "oem") {
+    return [
+      {
+        licenseId: "METHOD-OEM-001",
+        licenseName: "OEM 제조사 계약 체결",
+        issuingAuthority: "자체 (법무사 검토 권장)",
+        isMandatory: true,
+        estimatedDays: 14,
+        onlineApplicationUrl: "",
+        requiredDocuments: ["OEM 제조계약서", "품질보증서", "제조물책임보험 가입 확인"],
+      },
+      {
+        licenseId: "METHOD-OEM-002",
+        licenseName: "상표 출원 (브랜드 보호)",
+        issuingAuthority: "특허청",
+        isMandatory: false,
+        estimatedDays: 180,
+        onlineApplicationUrl: "https://www.kipris.or.kr",
+        requiredDocuments: ["상표 출원서", "상표 도안", "지정상품 목록"],
+      },
+      {
+        licenseId: "METHOD-OEM-003",
+        licenseName: "제조물책임(PL)보험 가입",
+        issuingAuthority: "보험사 (삼성·현대·KB 등)",
+        isMandatory: false,
+        estimatedDays: 3,
+        onlineApplicationUrl: "",
+        requiredDocuments: ["사업자등록증", "제품 사양서"],
+      },
+    ];
+  }
+  if (method === "popup") {
+    return [
+      {
+        licenseId: "METHOD-POP-001",
+        licenseName: "임시영업신고 (5일 이하 식품판매)",
+        issuingAuthority: "관할 구청 위생과",
+        isMandatory: true,
+        estimatedDays: 1,
+        onlineApplicationUrl: "https://www.gov.kr",
+        requiredDocuments: ["임시영업신고서", "영업 장소 사용 동의서", "식품위생교육 이수증"],
+      },
+      {
+        licenseId: "METHOD-POP-002",
+        licenseName: "팝업 장소 임대 계약",
+        issuingAuthority: "팝업 플랫폼 또는 건물주",
+        isMandatory: true,
+        estimatedDays: 7,
+        onlineApplicationUrl: "https://www.popupstore.co.kr",
+        requiredDocuments: ["임대차계약서 또는 사용 확인서"],
+      },
+    ];
+  }
+  return []; // self_manufacture: 공통 인허가로 충분
+}
 
 // 사업자등록 + 통신판매업 신고는 업종 불문 공통 필수
 function getCommonLicenses(info: BusinessInfo): LicenseItem[] {
@@ -87,9 +185,17 @@ function LicensingPageInner() {
 
   const cat = triage.matchedCategory;
   const commonLicenses = businessInfo ? getCommonLicenses(businessInfo) : [];
+  const methodLicenses = businessInfo?.businessMethod ? getMethodLicenses(businessInfo.businessMethod) : [];
   const mandatory = cat.requiredLicenses.filter(l => l.isMandatory);
   const optional = cat.requiredLicenses.filter(l => !l.isMandatory);
-  const totalDays = [...commonLicenses, ...mandatory].reduce((sum, l) => Math.max(sum, l.estimatedDays), 0);
+  const totalDays = [...commonLicenses, ...methodLicenses, ...mandatory].reduce((sum, l) => Math.max(sum, l.estimatedDays), 0);
+
+  const METHOD_LABELS: Record<string, string> = {
+    self_manufacture: "직접 제조·판매",
+    import_resell: "수입 후 판매",
+    oem: "OEM 위탁 제조",
+    popup: "팝업·단기 운영",
+  };
 
   function toggleCheck(id: string) {
     setCheckedLicenses(prev => ({ ...prev, [id]: !prev[id] }));
@@ -144,6 +250,21 @@ function LicensingPageInner() {
               <span className="text-xs text-gray-400 font-normal">업종 관계없이 모든 창업자 해당</span>
             </h2>
             {commonLicenses.map(lic => (
+              <LicenseCard key={lic.licenseId} lic={lic} checked={!!checkedLicenses[lic.licenseId]} onToggle={() => toggleCheck(lic.licenseId)} />
+            ))}
+          </div>
+        )}
+
+        {/* 사업 방식별 인허가 */}
+        {methodLicenses.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-semibold flex items-center gap-2">
+              🎯 사업 방식별 인허가
+              <span className="text-xs text-purple-400 font-normal">
+                {businessInfo?.businessMethod ? METHOD_LABELS[businessInfo.businessMethod] : ""}
+              </span>
+            </h2>
+            {methodLicenses.map(lic => (
               <LicenseCard key={lic.licenseId} lic={lic} checked={!!checkedLicenses[lic.licenseId]} onToggle={() => toggleCheck(lic.licenseId)} />
             ))}
           </div>
