@@ -4,11 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 const EXAMPLE_IDEAS = [
-  "허브가 들어간 식용 버터 캔들 100개 만들어 팔고 싶어요",
-  "수제 앞치마를 만들어서 카페에 납품하고 싶어요",
-  "천연 재료로 만든 핸드크림을 판매하고 싶어요",
-  "도예 원데이클래스 공방을 열고 싶어요",
-  "강아지 수제 간식을 만들어 온라인에서 팔고 싶어요",
+  "비건 립밤을 만들어서 플리마켓에서 팔고 싶어요",
+  "가죽 카드지갑을 소량 제작해 위탁 판매하고 싶어요",
+  "홈메이드 그래놀라를 소분해서 브런치 카페에 납품하고 싶어요",
+  "천연 염색 패브릭 파우치를 만들어 판매하고 싶어요",
+  "드라이플라워 인테리어 소품 공방을 운영하고 싶어요",
 ];
 
 const PAIN_POINTS = [
@@ -97,7 +97,7 @@ export default function HomePage() {
             <textarea
               value={idea}
               onChange={(e) => setIdea(e.target.value)}
-              placeholder={"예) 희귀 후추를 수입해서 소분 판매하고 싶어요\n예) 허브가 든 식용 버터 캔들 100개를 만들어 팔고 싶어요"}
+              placeholder={"예) 비건 립밤을 만들어서 플리마켓에서 팔고 싶어요\n예) 가죽 카드지갑을 소량 제작해 위탁 판매하고 싶어요"}
               rows={3}
               className="w-full bg-gray-900 border border-gray-700 rounded-xl px-5 py-4 text-white placeholder-gray-500 resize-none focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition text-base"
             />
